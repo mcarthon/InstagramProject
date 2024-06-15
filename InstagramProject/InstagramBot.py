@@ -5,13 +5,16 @@ if __name__ == "__main__":
 	from selenium.webdriver.common.by import By;
 	from selenium.webdriver.support import expected_conditions as EC
 	from selenium.webdriver.firefox.options import Options;
+	from selenium.webdriver.firefox.service import Service;
 	from selenium.webdriver.common.proxy import Proxy, ProxyType;
+
+	from webdriver_manager.firefox import GeckoDriverManager;
+
+	import os;
 	import time;
 	import random;
-	
 
 	from variables import *
-
 
 	proxy = Proxy ({
 
@@ -20,14 +23,37 @@ if __name__ == "__main__":
 			"sslProxy"  : random.choice ( PROXY_LIST )
 
 		});
+	print(f"Proxy: {proxy}");
 
-	user_agent = random.choice ( USER_AGENTS );
+	 # Print the firefox path to ensure it's correct
+	print(f"Using Firefox binary at: {firefox_path}");
+
+	# Check if the file exists at the specified path
+	if not os.path.isfile(firefox_path):
+		print(f"Firefox binary not found at {firefox_path}");
+	else:
+		print(f"Firefox binary found at {firefox_path}");
+
+	user_agent = USER_AGENTS[3];
+	print(f"User Agent: {user_agent}");
 
 	options = Options();
+	options.log.level = "trace";
 	options.proxy = proxy;
 	options.set_preference ( "general.useragent.override", user_agent );
+	options.binary_location = firefox_path;
 
-	driver = webdriver.Firefox( options = options );
+	service = Service ( GeckoDriverManager().install(), log_path = 'geckodriver.log' );
+
+	try:
+		driver = webdriver.Firefox(service=service, options=options)
+		driver.get("https://ww.instagram.com")
+		print("Firefox opened successfully")
+		driver.quit()
+	except Exception as e:
+		print(f"Error occurred: {e}")
+		raise
+		driver.quit();
 
 	driver.get("https://www.instagram.com");
 	
@@ -41,7 +67,7 @@ if __name__ == "__main__":
 
 	wait.until(lambda x: username.is_displayed());
 
-	username.click()
+	username.click();
 
 	for letter in USERNAME:
 
@@ -60,3 +86,5 @@ if __name__ == "__main__":
 	log_in.click();
 
 	time.sleep ( random.uniform ( 2, 4 ) );
+
+	driver.quit();
